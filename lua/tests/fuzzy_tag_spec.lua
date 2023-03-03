@@ -1,0 +1,41 @@
+describe("fuzzy_tag lua api tests", function()
+    local fuzzy_tag = require('fuzzy-tag')
+    local db_uri = nil;
+
+    before_each(function()
+        db_uri = fuzzy_tag.init_project()
+    end)
+
+    after_each(function()
+        vim.loop.fs_unlink(db_uri)
+    end)
+
+    it("Add same tag twice", function()
+        fuzzy_tag.add_tag("./README.md", "readme")
+        fuzzy_tag.add_tag("./README.md", "readme")
+        local tags = fuzzy_tag.get_tags("./README.md")
+        assert.are.same(tags, { "readme" })
+    end)
+
+    it("get_tags empty result", function()
+        assert.are.same(fuzzy_tag.get_tags("./README.md"), {})
+    end)
+
+    it("Add the same tag twice", function()
+        fuzzy_tag.add_tag("./README.md", "readme")
+        fuzzy_tag.add_tag("./README.md", "markdown")
+        local tags = fuzzy_tag.get_tags("./README.md")
+        assert.are.same(tags, { "readme", "markdown" })
+    end)
+
+    it("Delete tag", function()
+        fuzzy_tag.add_tag("./README.md", "readme")
+        fuzzy_tag.add_tag("./README.md", "markdown")
+        local tags = fuzzy_tag.get_tags("./README.md")
+        assert.are.same(tags, { "readme", "markdown" })
+        assert.equals(fuzzy_tag.remove_tag("./README.md", "readme2"), false)
+        assert.equals(fuzzy_tag.remove_tag("./README.md", "readme"), true)
+        tags = fuzzy_tag.get_tags("./README.md")
+        assert.are.same(tags, { "markdown" })
+    end)
+end)
