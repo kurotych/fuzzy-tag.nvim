@@ -123,4 +123,75 @@ M.remove_tag = function(file_path, tag_name)
         return true
     end)
 end
+
+local function construct_where(user_input, last_word_finished)
+    local words = {}
+    for word in user_input:gmatch("%S+") do
+        table.insert(words, word)
+    end
+
+    local res = ""
+    if #words == 1 then
+        res = string.format("where tags.name like '%s' ", words[1])
+        if not last_word_finished then
+            -- A bit tricky but the logic is to prioritize exact match
+            -- count_matched for exact match will be 2 instead of 1
+            return res .. string.format("or tags.name like '%s%s' ", words[1], '%')
+        end
+        return res
+    end
+
+    res = string.format("where tags.name like '%s' ", words[1])
+    if #words >= 2 then
+        for i = 2, #words do
+            if i == #words and not last_word_finished then
+                -- A bit tricky but the logic is to prioritize exact match
+                -- count_matched for exact match will be 2 instead of 1
+                res = res .. string.format("or tags.name like '%s' ", words[i], '%')
+                res = res .. string.format("or tags.name like '%s%s' ", words[i], '%')
+            else
+                res = res .. string.format("or tags.name like '%s' ", words[i])
+            end
+        end
+    end
+
+    return res
+end
+
+-- Expected input format is a string with tags separated by space
+M.fuzzy_search = function(user_input)
+    if string.len(user_input) == 0 then
+        return {}
+    end
+
+    local last_char = string.sub(user_input, -1)
+    local where_part = construct_where(user_input, last_char == " ")
+
+    local select_res = L.sqlite_db:with_open(function(db)
+        local query = "select file_path, COUNT(file_path) as count_matched from tags \
+inner join files_tags on files_tags.tag_id = tags.id \
+inner join files on files_tags.file_id = files.id "
+        query = query .. where_part .. "group by file_path ORDER BY COUNT(file_path) DESC;"
+        local matched_files = db:eval(query)
+        print(query)
+        print(P(matched_files))
+
+        -- In case where no results found sqlite.lua library returns true
+        if type(matched_files) ~= "table" then
+            return {}
+        end
+
+        table.sort(matched_files, function(a, b)
+            return a.count_matched > b.count_matched
+        end)
+
+        local result = {}
+        for _, v in ipairs(matched_files) do
+            table.insert(result, v.file_path)
+        end
+        return result
+    end)
+    return select_res
+end
+
 return M;

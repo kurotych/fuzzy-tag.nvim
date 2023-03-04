@@ -9,7 +9,7 @@ API functions
 - add_tag(filepath, tag_name)
 - get_tags(filepath)
 - remove_tag(filepath, tag_name)
-- fuzzy_search(user_input) (tags)
+- fuzzy_search(user_input) (tags) -- files array
 
 
 ## Plugin Requerements 
