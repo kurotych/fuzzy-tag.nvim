@@ -2,7 +2,6 @@ local M = {}
 local L = {}
 local sqlite = require "sqlite.db"
 
-
 local function find_root_dir()
     local root_dir = "";
     local job_id = vim.fn.jobstart("git rev-parse --show-toplevel", {
@@ -40,7 +39,7 @@ M.init_project = function()
         opts = { keep_open = false },
     }
 
-    return uri;
+    return uri, L.root_dir;
 end
 
 local function get_or_insert_id(get_func, insert_func)
@@ -169,9 +168,6 @@ inner join files_tags on files_tags.tag_id = tags.id \
 inner join files on files_tags.file_id = files.id "
         query = query .. where_part .. "group by file_path ORDER BY COUNT(file_path) DESC, length(tags.name) ASC;"
         local matched_files = db:eval(query)
-        print(query)
-        print("INput: ", user_input)
-        print("matched_files: ", P(matched_files))
 
         -- In case where no results found sqlite.lua library returns true
         if type(matched_files) ~= "table" then
@@ -186,10 +182,8 @@ inner join files on files_tags.file_id = files.id "
         for _, v in ipairs(matched_files) do
             table.insert(result, v.file_path)
         end
-        print("RESULT :", P(result))
         return result
     end)
-    print("select res: ", P(select_res))
     return select_res
 end
 

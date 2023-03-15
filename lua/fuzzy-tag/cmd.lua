@@ -5,19 +5,27 @@ local pickers = require "telescope.pickers"
 local finders = require "telescope.finders"
 local conf = require("telescope.config").values
 
--- fix me. Make relative file path
-M.add_tag_cmd = function(opts)
-    ftapi.init_project()
+local function get_relative_path(root_dir)
     local current_buf = vim.api.nvim_get_current_buf()
     local filepath = vim.api.nvim_buf_get_name(current_buf)
-    ftapi.add_tag(filepath, opts.args)
+
+    local relative_path = string.sub(filepath, #root_dir + 1)
+    if relative_path:sub(1, 1) == "/" then
+        relative_path = relative_path:sub(2)
+    end
+    return relative_path;
+end
+
+M.add_tag_cmd = function(opts)
+    local _, root_dir = ftapi.init_project()
+    local relative_path = get_relative_path(root_dir)
+    ftapi.add_tag(relative_path, opts.args)
 end
 
 M.remove_tag_cmd = function(opts)
-    ftapi.init_project()
-    local current_buf = vim.api.nvim_get_current_buf()
-    local filepath = vim.api.nvim_buf_get_name(current_buf)
-    ftapi.remove_tag(filepath, opts.args)
+    local _, root_dir = ftapi.init_project()
+    local relative_path = get_relative_path(root_dir)
+    ftapi.remove_tag(relative_path, opts.args)
 end
 
 M.fuzzy_search_cmd = function()
@@ -41,11 +49,10 @@ M.fuzzy_search_cmd = function()
     picker:find()
 end
 
-M.show_tags_cmd = function (opts)
-    ftapi.init_project()
-    local current_buf = vim.api.nvim_get_current_buf()
-    local filepath = vim.api.nvim_buf_get_name(current_buf)
-    local res = ftapi.get_tags(filepath)
+M.show_tags_cmd = function(opts)
+    local _, root_dir = ftapi.init_project()
+    local relative_path = get_relative_path(root_dir)
+    local res = ftapi.get_tags(relative_path)
     print(vim.inspect(res))
 end
 

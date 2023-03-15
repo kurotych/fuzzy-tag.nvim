@@ -1,5 +1,4 @@
 local M = {}
-local ftapi = require "fuzzy-tag.api"
 local ftcmd = require "fuzzy-tag.cmd"
 
 M.setup = function(opts)
