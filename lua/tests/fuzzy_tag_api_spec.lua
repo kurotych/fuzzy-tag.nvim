@@ -1,5 +1,5 @@
 describe("fuzzy_tag lua api tests", function()
-    local fuzzy_tag = require('fuzzy-tag')
+    local fuzzy_tag = require('fuzzy-tag.api')
     local db_uri = nil;
 
     before_each(function()
@@ -152,18 +152,26 @@ describe("fuzzy_tag lua api tests", function()
         local result = fuzzy_tag.fuzzy_search("test tag3")
         assert(type(result) == "table")
         assert(#result == 2)
-        assert(result[1] == "./README2.md")
-        assert(result[2] == "./README.md")
+        assert(result[1] == "./README.md")
+        assert(result[2] == "./README2.md")
 
         -- Test a query that matches only one file
         result = fuzzy_tag.fuzzy_search("tag3")
         assert(#result == 2)
-        assert(result[1] == "./README2.md")
-        assert(result[2] == "./README.md")
+        assert(result[1] == "./README.md")
+        assert(result[2] == "./README2.md")
 
         --Test a query that doesn't match any files
         result = fuzzy_tag.fuzzy_search("foo bar")
         assert(type(result) == "table")
         assert(#result == 0)
+    end)
+
+    it("Fuzzy search case exact match mast be preoritized", function()
+        fuzzy_tag.add_tag("./README2.md", "123")
+        fuzzy_tag.add_tag("./README.md", "12")
+
+        local tags = fuzzy_tag.fuzzy_search("12")
+        assert.are.same(tags, { "./README.md", "./README2.md" })
     end)
 end)
