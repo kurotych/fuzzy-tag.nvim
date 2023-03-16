@@ -34,14 +34,12 @@ M.fuzzy_search_cmd = function()
 	local function get_workspace_symbols_requester()
 		local prompt = picker:_get_prompt()
 		return ftapi.fuzzy_search(prompt)
-		-- return { "README.md" }
 	end
 
 	local opts = {}
 	picker = pickers.new(opts, {
 		prompt_title = "Live tags",
 		finder = finders.new_dynamic({
-			-- results = results
 			fn = get_workspace_symbols_requester,
 			entry_maker = function(entry)
 				return {
@@ -57,7 +55,7 @@ M.fuzzy_search_cmd = function()
 	picker:find()
 end
 
-M.show_tags_cmd = function(opts)
+M.show_tags_cmd = function()
 	local _, root_dir = ftapi.init_project()
 	local relative_path = get_relative_path(root_dir)
 	local res = ftapi.get_tags(relative_path)

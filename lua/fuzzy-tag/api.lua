@@ -1,6 +1,8 @@
+local sqlite = require("sqlite.db")
 local M = {}
 local L = {}
-local sqlite = require("sqlite.db")
+
+local vim = vim
 
 local function find_root_dir()
 	local root_dir = ""
@@ -150,13 +152,13 @@ end
 
 --[[
 Query example:
-select file_path, group_concat(name, ", ") as file_tags, count_matched 
-from (select file_path, file_id, COUNT(file_path) as count_matched from tags 
-inner join files_tags on files_tags.tag_id = tags.id 
-inner join files on files_tags.file_id = files.id where tags.name like '12%' group by file_path) as fuzzy_search 
-inner join files_tags on files_tags.file_id = fuzzy_search.file_id  
-inner join tags on tags.id = tag_id 
-group by fuzzy_search.file_id ORDER BY COUNT(file_path) DESC, length(tags.name) ASC; 
+select file_path, group_concat(name, ", ") as file_tags, count_matched
+from (select file_path, file_id, COUNT(file_path) as count_matched from tags
+inner join files_tags on files_tags.tag_id = tags.id
+inner join files on files_tags.file_id = files.id where tags.name like '12%' group by file_path) as fuzzy_search
+inner join files_tags on files_tags.file_id = fuzzy_search.file_id
+inner join tags on tags.id = tag_id
+group by fuzzy_search.file_id ORDER BY COUNT(file_path) DESC, length(tags.name) ASC;
 --]]
 -- Expected input format is a string with tags separated by space
 M.fuzzy_search = function(user_input)
