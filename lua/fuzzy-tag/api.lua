@@ -123,50 +123,56 @@ M.remove_tag = function(file_path, tag_name)
     end)
 end
 
-local function construct_where(user_input, last_word_finished)
+local function construct_where(user_input)
     local words = {}
     for word in user_input:gmatch("%S+") do
         table.insert(words, word)
     end
 
-    local res = ""
     if #words == 1 then
-        res = string.format("where tags.name like '%s%s' ", words[1], '%')
-        if not last_word_finished then
-            return res .. string.format("or tags.name like '%s' ", words[1])
-        end
-        return res
+        return string.format("where tags.name like '%s%s' ", words[1], '%')
     end
 
-    res = string.format("where tags.name like '%s' ", words[1])
-
+    local res = string.format("where tags.name like '%s' ", words[1])
     if #words >= 2 then
         for i = 2, #words do
-            if i == #words and not last_word_finished then
-                res = res .. string.format("or tags.name like '%s%s' ", words[i], '%')
-            else
-                res = res .. string.format("or tags.name like '%s' ", words[i])
+            if i == #words then
+                return res .. string.format("or tags.name like '%s%s' ", words[i], '%')
             end
+            res = res .. string.format("or tags.name like '%s' ", words[i])
         end
     end
 
     return res
 end
 
+--[[
+Query example:
+select file_path, group_concat(name, ", ") as file_tags, count_matched 
+from (select file_path, file_id, COUNT(file_path) as count_matched from tags 
+inner join files_tags on files_tags.tag_id = tags.id 
+inner join files on files_tags.file_id = files.id where tags.name like '12%' group by file_path) as fuzzy_search 
+inner join files_tags on files_tags.file_id = fuzzy_search.file_id  
+inner join tags on tags.id = tag_id 
+group by fuzzy_search.file_id ORDER BY COUNT(file_path) DESC, length(tags.name) ASC; 
+--]]
 -- Expected input format is a string with tags separated by space
 M.fuzzy_search = function(user_input)
     if string.len(user_input) == 0 then
         return {}
     end
 
-    local last_char = string.sub(user_input, -1)
-    local where_part = construct_where(user_input, last_char == " ")
+    local where_part = construct_where(user_input)
 
     local select_res = L.sqlite_db:with_open(function(db)
-        local query = "select file_path, COUNT(file_path) as count_matched from tags \
+        local query = "select file_path, group_concat(name, \", \") as file_tags, count_matched \
+from (select file_path, file_id, COUNT(file_path) as count_matched from tags \
 inner join files_tags on files_tags.tag_id = tags.id \
 inner join files on files_tags.file_id = files.id "
-        query = query .. where_part .. "group by file_path ORDER BY COUNT(file_path) DESC, length(tags.name) ASC;"
+        query = query .. where_part .. "group by file_path)" .. "as fuzzy_search \
+inner join files_tags on files_tags.file_id = fuzzy_search.file_id  \
+inner join tags on tags.id = tag_id \
+group by fuzzy_search.file_id  ORDER BY COUNT(file_path) DESC, length(tags.name) ASC;"
         local matched_files = db:eval(query)
 
         -- In case where no results found sqlite.lua library returns true
@@ -178,11 +184,11 @@ inner join files on files_tags.file_id = files.id "
             return a.count_matched > b.count_matched
         end)
 
-        local result = {}
-        for _, v in ipairs(matched_files) do
-            table.insert(result, v.file_path)
-        end
-        return result
+        -- local result = {}
+        -- for _, v in ipairs(matched_files) do
+        --     table.insert(result, v)
+        -- end
+        return matched_files 
     end)
     return select_res
 end

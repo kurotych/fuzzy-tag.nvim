@@ -34,6 +34,7 @@ M.fuzzy_search_cmd = function()
     local function get_workspace_symbols_requester()
         local prompt = picker:_get_prompt()
         return ftapi.fuzzy_search(prompt)
+        -- return { "README.md" }
     end
 
     local opts = {}
@@ -42,6 +43,14 @@ M.fuzzy_search_cmd = function()
         finder = finders.new_dynamic {
             -- results = results
             fn = get_workspace_symbols_requester,
+            entry_maker = function(entry)
+                return {
+                    value = entry.file_path,
+                    display = entry.file_path .. "\t[" .. entry.file_tags .. "]",
+                    ordinal = entry,
+                }
+            end
+
         },
         previewer = conf.grep_previewer(opts),
     })
