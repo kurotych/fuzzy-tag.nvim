@@ -18,3 +18,9 @@ use("kurotych/fuzzy-tag.nvim")
 - `AddTag <tag_name>` - Add tag to current file 
 - `RemoveTag <tag_name>` - Remove tag from current file
 - `:lua require("fuzzy-tag.cmd").fuzzy_search_cmd()` - Start fuzzy search
+
+## Bindings
+```lua
+local fuzzy_tag = require("fuzzy-tag.cmd")
+vim.keymap.set('n', 'ft', function() fuzzy_tag.fuzzy_search_cmd() end)
+```
