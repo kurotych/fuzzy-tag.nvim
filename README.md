@@ -1,19 +1,20 @@
 # Fuzzy-tag.nvim
 
 Fuzzy file search by tags.
-For those who want to use the tag system and don't change a source file.
+For those who want to use the tag system but don't modify source files.
 
+![d](demo.png)
 
-API functions
-- init_project(project_root_dir) -- use git init
-- add_tag(filepath, tag_name)
-- get_tags(filepath)
-- remove_tag(filepath, tag_name)
-- fuzzy_search(user_input) (tags) -- files array
+## Install the plugin
+```lua
+-- Packer
+use("nvim-lua/plenary.nvim")
+use("kkharji/sqlite.lua")
+use("nvim-telescope/telescope.nvim")
+use("kurotych/fuzzy-tag.nvim")
+```
 
-
-## Plugin Requerements 
-- https://github.com/kkharji/sqlite.lua
-- Telescope (Optional ui support)
-- Plenary
-
+## Commands
+- `AddTag <tag_name>` - Add tag to current file 
+- `RemoveTag <tag_name>` - Remove tag from current file
+- `:lua require("fuzzy-tag.cmd").fuzzy_search_cmd()` - Start fuzzy search
