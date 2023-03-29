@@ -14,6 +14,7 @@ use("nvim-telescope/telescope.nvim")
 use("kurotych/fuzzy-tag.nvim")
 require("fuzzy-tag").setup({})
 ```
+Initialize working directory with `git init` command
 
 ## Commands
 - `AddTag <tag_name>` - Add tag to current file 
