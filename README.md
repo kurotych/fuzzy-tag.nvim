@@ -12,6 +12,7 @@ use("nvim-lua/plenary.nvim")
 use("kkharji/sqlite.lua")
 use("nvim-telescope/telescope.nvim")
 use("kurotych/fuzzy-tag.nvim")
+require("fuzzy-tag").setup({})
 ```
 
 ## Commands
